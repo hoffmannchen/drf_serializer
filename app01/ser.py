@@ -1,12 +1,13 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from app01.models import Book
 
 
 class BookSerializer(serializers.Serializer):
-    # id = serializers.CharField()
+    id = serializers.CharField(read_only=True)
     title = serializers.CharField(max_length=16, min_length=4)
     author = serializers.CharField()
-    price = serializers.CharField()
+    price = serializers.CharField(write_only=True, required=True)
     publisher = serializers.CharField()
 
     def validate_price(self, data):
@@ -18,7 +19,7 @@ class BookSerializer(serializers.Serializer):
     def validate(self, validate_data):
         author = validate_data.get('author')
         publisher = validate_data.get('publisher')
-        if publisher==author:
+        if publisher == author:
             raise ValidationError('作者和出版社不能为同一人')
         return validate_data
 
@@ -28,4 +29,8 @@ class BookSerializer(serializers.Serializer):
         instance.author = validated_data.get('author')
         instance.publisher = validated_data.get('publisher')
         instance.save()
+        return instance
+
+    def create(self, validated_data):
+        instance = Book.objects.create(**validated_data)
         return instance
